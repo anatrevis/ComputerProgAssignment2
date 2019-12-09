@@ -11,7 +11,7 @@ public class Main {
 		int height=0, width=0, play;
 		boolean inputok = false;
 		gamestate = true;
-		highest_number = 0;
+		highest_number = 1;
 		
 		System.out.println("--- 1048 GAME ---");
 		
@@ -21,7 +21,7 @@ public class Main {
 			System.out.println("Choose grid height and width:");
 			height = in.nextInt();
 			
-			if (height>2 && height<8) { //if users input is a integer <4 or >8, repeat the instructions and ask again 
+			if (height>4 && height<8) { //if users input is a integer <4 or >8, repeat the instructions and ask again 
 				width = height;
 				inputok = true;
 				System.out.println("--- LET'S PLAY ---"); // when user inputs valid grid measurements, the game can start
@@ -42,43 +42,57 @@ public class Main {
 		
 		displayGrid(grid, height, width); //creates the game grid
 		while (gamestate == true) { 
-			play = playChoices(); //show movements instructions and gets the user input 
+			play = playChoices(grid,height,width); //show movements instructions and gets the user input 
 			grid = move(grid, height, width, play);
 			displayGrid(grid, height, width); 
+			
+			boolean validmovements = testValidMovements(grid, height, width); //tests to see if there are still any valid movements in the game 
+			
+			if (!validmovements) {
+				System.out.println("No more movements. YOU LOST.");
+				gamestate = false;
+			}
+			
+			System.out.println("SCORE: " +highest_number +"\n");
+			//System.out.println("Game state: " +gamestate +"\n");
 		}
 
 	}
 	
-	public static int playChoices() {
-		int play;
+	public static int playChoices(int[][] grid, int height, int width) {
+		int play=0;
 		
 		do {
 			System.out.println("You can choose these movements..." );
-			System.out.println("1 to go up;" ); //1
-			System.out.println("2 to go down" ); //2
-			System.out.println("3 to go left" ); //3
-			System.out.println("4 to go right" ); //4
-			Scanner in = new Scanner(System.in); //5
+			System.out.println("w to go up;" ); //1
+			System.out.println("s to go down" ); //2
+			System.out.println("a to go left" ); //3
+			System.out.println("d to go right" ); //4
+			Scanner in = new Scanner(System.in); 
 			System.out.println("Please, enter your choice: " );
-			play = in.nextInt();
+			char option = in.next().charAt(0);
 			
+			switch(option) {
 			
-			switch(play) {
-			
-			case 1:
+			case 'w':
+				play = 1;
 				break;
 				
-			case 2:
+			case 'a':
+				play = 3;
 				break;
 			
-			case 3:
+			case 's':
+				play = 2;
 				break;
 			
-			case 4:
+			case 'd':
+				play = 4;
 				break;
 				
 			default:
 				System.out.println("Invalid input.\n" );
+				displayGrid(grid, height, width);
 			
 			}
 		}while(play > 4 || play < 1);
@@ -162,21 +176,14 @@ public class Main {
 			}
 		}
 		
-		//System.out.println("number of free cells " + number_of_free_cells+"\n");
 		if (highest_number == 1024) {
 			System.out.println("Congratulations!!! YOU WON.");
 			gamestate = false;
 		}
 		
-		if (number_of_free_cells == 1) {
-			gamestate = false;
-		}
 		
-		
-		
-		
-//		System.out.println(" ");
-		
+		//System.out.println("Number of free cells: "+ number_of_free_cells);
+
 		int[] free_cells_list = new int[number_of_free_cells]; //creates a free cell array
 		int pos=0;
 		
@@ -373,7 +380,45 @@ public class Main {
 		}
 	
 		return grid;
+		
+		
 	};
 	
+	public static boolean testValidMovements(int grid[][], int height, int width) {
+		boolean validmovement=false;
+		//System.out.println(grid);
+		
+		for(int i=0; i<height;i++) { 
+			if(validmovement) {
+				break;
+			}
+			for(int j=0;j<width;j++) {
+				//System.out.println("hello again"+ grid[i][j]);
+				if (grid [i][j] == 0 ) {
+					validmovement = true;
+					break;
+				}
+				
+				if (j<width-1) {
+					if (grid[i][j] == grid[i][j+1]) { //compares horizontally
+						//System.out.println("horizontally comparing grid["+i+"]["+j+"] with grid["+i+"]["+(j+1)+"]");
+						validmovement = true;
+						break;
+					}
+				}
+
+				if (i < height-1) {
+					if(grid[i][j] == grid[i+1][j]) { //compares vertically
+						//System.out.println("vertically comparing grid["+i+"]["+j+"] with grid["+(i+1)+"]["+j+"]");
+						validmovement = true;
+						break;
+					}
+				}
+
+			}
+		}
+		
+		return validmovement;
+	}
 	
 }
