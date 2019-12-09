@@ -3,20 +3,20 @@ import java.util.Scanner;
 
 public class Main {
 	
-	public static boolean gamestate;
+	public static boolean gamestate; //this is a control variable for the game while loop. It changes to false if the player wins - if the score is 1024 or if there arent any possible movements
 	
-	public static int highest_number;
+	public static int score, number_of_free_cells; // this variables control respectively the game score (or the highest number in grid) and the number of free cells in the grid;
 
 	public static void main(String[] args) {
 		int height=0, width=0, play;
 		boolean inputok = false;
 		gamestate = true;
-		highest_number = 1;
+		score = 1;
 		
 		System.out.println("--- 1048 GAME ---");
 		
 		while(inputok == false){ //asks the user to input the grid height and width
-			System.out.println("You can only choose integers between 4 and 8");
+			System.out.println("\nAttention: You can only choose integers between 4 and 8");
 			Scanner in = new Scanner(System.in);
 			System.out.println("Choose grid height and width:");
 			height = in.nextInt();
@@ -41,25 +41,26 @@ public class Main {
 		};
 		
 		displayGrid(grid, height, width); //creates the game grid
+		
 		while (gamestate == true) { 
-			play = playChoices(grid,height,width); //show movements instructions and gets the user input 
-			grid = move(grid, height, width, play);
-			displayGrid(grid, height, width); 
-			
-			boolean validmovements = testValidMovements(grid, height, width); //tests to see if there are still any valid movements in the game 
-			
-			if (!validmovements) {
-				System.out.println("No more movements. YOU LOST.");
-				gamestate = false;
+			play = playChoices(grid,height,width); //show movements instructions and return the user input 
+			grid = move(grid, height, width, play); //moves according to the movement user chose in "play". inside this function "addrandom1" is called
+			displayGrid(grid, height, width);  //prints the grid after user played
+			//System.out.println("Number of free cells:"+number_of_free_cells);
+			if (number_of_free_cells == 1) { //if there is ony one free cell in the grid, then it needs testing
+				boolean validmovements = testValidMovements(grid, height, width); //tests if there are still any possible valid movements in the game 
+				if (!validmovements) { //if there arent any valid movements, the game ends and player lose
+					System.out.println("No more movements. YOU LOST.");
+					gamestate = false; 
+				}
 			}
-			
-			System.out.println("SCORE: " +highest_number +"\n");
-			//System.out.println("Game state: " +gamestate +"\n");
+
+			System.out.println("SCORE: " +score +"\n");
 		}
 
 	}
 	
-	public static int playChoices(int[][] grid, int height, int width) {
+	public static int playChoices(int[][] grid, int height, int width) { //show movements instructions and return the user input 
 		int play=0;
 		
 		do {
@@ -91,7 +92,7 @@ public class Main {
 				break;
 				
 			default:
-				System.out.println("Invalid input.\n" );
+				System.out.println("Invalid input.\n" ); //if the user inputs an invalid play, the turn doesnt counts. The grid is printed and the play is asked again
 				displayGrid(grid, height, width);
 			
 			}
@@ -100,20 +101,20 @@ public class Main {
 		return play;
 	}
 	
-	public static void displayGrid(int[][] grid, int grid_height, int grid_width ){
+	public static void displayGrid(int[][] grid, int grid_height, int grid_width ){ //this function prints the grid
 		
 		for (int x=0; x<grid_width; x++) {
-			System.out.print("+-----");
+			System.out.print("+-----"); //prints the upper border'
 		}
-		System.out.print("+");
+		System.out.print("+"); //prints the last + of upper border
 		
 		for(int i=0; i<grid_height;i++) {
-			System.out.print("\n");
+			System.out.print("\n"); //skips the line
 			
-			for(int j=0;j<grid_width;j++) { //width
+			for(int j=0;j<grid_width;j++) { 
 				if (grid[i][j]== 0) {
 					
-					System.out.print("|");
+					System.out.print("|");//prints separator before each cell
 					System.out.print("     "); //prints a space for 4 numbers (free cell)
 				}
 				
@@ -139,61 +140,56 @@ public class Main {
 				}
 					
 				if(j==grid_width-1) 
-					System.out.print("|"); //prints separator
+					System.out.print("|"); //prints separator for external right border
 			}
 
 			if(i<grid_height-1){
-				System.out.print("\n+-----");
+				System.out.print("\n+-----"); //prints the lines to separate the cells horizontally (just in the first column)
 				for (int x=0; x<grid_width-1; x++) {
-					System.out.print("+-----");
+					System.out.print("+-----"); //prints the lines to separate the rest of the cells horizontally
 				}
-				System.out.print("+");
+				System.out.print("+"); //prints + for external right border
 				
 			}
 		}
 		System.out.print("\n");
 		for (int x=0; x<grid_width; x++) {
-			System.out.print("+-----");
+			System.out.print("+-----"); //prints the bottom border'
 		}
-		System.out.print("+");
+		System.out.print("+"); //prints the last + of bottom border'
 		System.out.println("\n");
 	}
 
-	public static int[][] addrandom1(int grid[][], int height, int width) {
-		int number_of_free_cells=0;
-		
-		for(int i=0; i<height;i++) { //allocates the necessary memory for a list with the current free cells
+	public static int[][] addrandom1(int grid[][], int height, int width) { //this function adds a 1 to a random unoccupied cell of the grid
+		number_of_free_cells = 0; //sets the global variable on 0 in the start
+	
+		for(int i=0; i<height;i++) { //percorre the matrix and determine the necessary memory for a list with the current free cells
 			for(int j=0;j<width;j++) {
 				
-				if (grid[i][j]>highest_number) {
-					highest_number = grid[i][j];
+				if (grid[i][j]>score) { //gets the game's highest score
+					score = grid[i][j];
 				}
 				
-				if (grid[i][j]==0) {
-					//System.out.println("grid[" +i+"]["+j+"] is free cell");
-					number_of_free_cells++;
+				if (grid[i][j]==0) { //check if its a free cell;
+					number_of_free_cells++; //sums 1 to the number of free cells
 				}
 			}
 		}
 		
-		if (highest_number == 1024) {
+		
+		if (score == 1024) { //if the game score is 1024, the player wins
 			System.out.println("Congratulations!!! YOU WON.");
 			gamestate = false;
 		}
-		
-		
-		//System.out.println("Number of free cells: "+ number_of_free_cells);
 
-		int[] free_cells_list = new int[number_of_free_cells]; //creates a free cell array
+		int[] free_cells_list = new int[number_of_free_cells]; //allocates the memory for a free cell list
 		int pos=0;
 		
 		for(int i=0; i<height;i++) { //adds the indexes of the free cells in the free cells list
 			for(int j=0;j<width;j++) {
 				if (grid[i][j]==0) {
-					
 					int index = (i*width)+j;
-					free_cells_list[pos] = index; //codes the positions into indexes
-//					System.out.print(free_cells_list[pos]+ " ");
+					free_cells_list[pos] = index; //codes the positions into indexes (from 0 to number of free cells)
 					pos++;
 					
 				}
@@ -201,24 +197,22 @@ public class Main {
 		}
 		
 		Random random = new Random();
-		int random_free = random.nextInt(number_of_free_cells);
-//		System.out.println("\nthis is the random: "+free_cells_list[random_free]);
+		int random_free = random.nextInt(number_of_free_cells); //select one index of the free cells list 
 
-		//decode the index into positions
+		//decode the index into positions:
 		
-		int pos_height = free_cells_list[random_free]/width;
-		//System.out.println("this is the pos_height: "+pos_height);
-		int pos_width = free_cells_list[random_free]-(pos_height * width);
-		
-		//System.out.println("random added at grid["+pos_height+"]["+pos_width+"]\n");
+		int pos_height = free_cells_list[random_free]/width; //this is the height
+
+		int pos_width = free_cells_list[random_free]-(pos_height * width); //this is the width of the selected index from free cells list
 		
 		grid [pos_height][pos_width] = 1; // adds 1 to the position sorted
 		
 		return grid;
 	}
+	
 
-	public static int[][] move(int grid[][], int height, int width, int play){ 
-		boolean moved = false; 
+	public static int[][] move(int grid[][], int height, int width, int play){ //moves the grid according to the movement the player chose
+		boolean moved = false; //control variable to see if there were any changes in the grid with the selected play
 		
 		if (play == 4) { //moves grid to the right 
 			for(int i=0; i<height;i++) { 
@@ -226,26 +220,26 @@ public class Main {
 					
 					int nextcell = 1;
 					int x=j;
-					
-					while (x>0 && nextcell <=x ) { // this while moves all the numbers to the right of the grid
+					// this while moves all the numbers to the right of the grid
+					while (x>0 && nextcell <=x ) {  //compares each cell to their next
 
-						if (grid[i][x] == 0) {
-							if(grid[i][x-nextcell] != 0) {
-								moved = true;
+						if (grid[i][x] == 0) { //if the actual cell is emty
+							if(grid[i][x-nextcell] != 0) { //cheks if the next one isnt empty
+								moved = true; //if the next one is not empty, the grid moved it to the empty cell
 							}
-							grid[i][x] = grid[i][x-nextcell]; //atual recebe prox
-							grid[i][x-nextcell] = 0; //prox recebe 0
+							grid[i][x] = grid[i][x-nextcell]; //actual gets next
+							grid[i][x-nextcell] = 0; //next gets 0
 							
 						}
-						else if(grid[i][x] != 0 && grid[i][x-nextcell]!=0 && grid[i][x] != grid[i][x-nextcell]){
-							break;
+						else if(grid[i][x] != 0 && grid[i][x-nextcell]!=0 && grid[i][x] != grid[i][x-nextcell]){ //if the actual cell is not empty, the next cell is not empty and they are different from each other, it doesnt change
+							break; //gets out of the while
 						}
 						
-						else if(grid[i][x] != 0 && grid[i][x] == grid[i][x-nextcell]){
-							grid[i][x] = grid[i][x-nextcell] + grid[i][x]; //atual soma prox
-							grid[i][x-nextcell] = 0; //prox recebe 0
+						else if(grid[i][x] != 0 && grid[i][x] == grid[i][x-nextcell]){//if the actual cell is not empty, and the next cell is equal, the actual cell gets a sum of both cells
+							grid[i][x] = grid[i][x-nextcell] + grid[i][x]; //actual sums with next
+							grid[i][x-nextcell] = 0; //next gets 0;
 							moved = true;
-							break;
+							break;//gets out of the while
 							
 						}
 						nextcell ++;
@@ -259,30 +253,24 @@ public class Main {
 			
 			for(int i=0; i<height;i++) { 
 				for(int j=0;j<=width-1;j++) {
-//					System.out.println("i:"+ i+" j:" +j);
-//					System.out.println("grid:"+ grid[i][j] );
 					
 					int nextcell = 1;
 					int x=j;
 					while (x < width && nextcell <= width-x-1 ) { // this while moves all the numbers to the left of the grid
-						//System.out.println("atual: i:"+ i+" j:" +x);
-						//System.out.println("prox: i:"+ i+" j:" + (x+nextcell));
-						//System.out.println("num atual: "+ grid[i][x]+" num prox: " +grid[i][x+nextcell]+ "\n");
-////						System.out.println("num atual: "+ grid[i][x]+" num prox: " +grid[i][x-nextcell]);
 						if (grid[i][x] == 0) {
 							if(grid[i][x+nextcell] != 0) {
 								moved = true;
 							}
-							grid[i][x] = grid[i][x+nextcell]; //atual recebe prox
-							grid[i][x+nextcell] = 0; //prox recebe 0
+							grid[i][x] = grid[i][x+nextcell]; //actual gets next
+							grid[i][x+nextcell] = 0; //next gets empty
 						}
 						else if(grid[i][x] != 0 && grid[i][x+nextcell] != 0 && grid[i][x] != grid[i][x+nextcell] ){
 							break;
 						}
 						
 						else if(grid[i][x] != 0 && grid[i][x] == grid[i][x+nextcell]){
-							grid[i][x] = grid[i][x+nextcell] + grid[i][x]; //atual soma prox
-							grid[i][x+nextcell] = 0; //prox recebe 0
+							grid[i][x] = grid[i][x+nextcell] + grid[i][x]; //actual sums next
+							grid[i][x+nextcell] = 0; //next gets empty
 							moved = true;
 							break;
 						}
@@ -297,29 +285,23 @@ public class Main {
 			
 			for(int i=0; i<width;i++) { 
 				for(int j=0;j<=height-1;j++) {
-//					System.out.println("j:"+ j+" i:" +i);
-//					System.out.println("grid:"+ grid[j][i] );
-//					
+					
 					int nextcell = 1;
 					int x=j;
 					while (x < height && nextcell <= height-x-1 ) { // this while moves all the numbers to the top of the grid
-//						System.out.println("atual: j:"+ x+" i:" +i);
-//						System.out.println("prox: j:"+ (x+nextcell)+" i:" + i);
-//						System.out.println("num atual: "+ grid[x][i]+" num prox: " +grid[x+nextcell][i]+ "\n");
-
 						if (grid[x][i] == 0) {
 							if(grid[x+nextcell][i] != 0) {
 								moved = true;
 							}
-							grid[x][i] = grid[x+nextcell][i]; //atual recebe prox
-							grid[x+nextcell][i] = 0; //prox recebe 0
+							grid[x][i] = grid[x+nextcell][i]; //actual gets next
+							grid[x+nextcell][i] = 0; //next gets empty
 						}
 						else if(grid[x][i] != 0  && grid[x+nextcell][i] !=0 && grid[x][i] != grid[x+nextcell][i]){
 							break;
 						}
 						else if(grid[x][i] != 0 && grid[x][i] == grid[x+nextcell][i]){
-							grid[x][i] = grid[x+nextcell][i] + grid[x][i]; //atual soma prox
-							grid[x+nextcell][i] = 0; //prox recebe 0
+							grid[x][i] = grid[x+nextcell][i] + grid[x][i]; //actual sums next
+							grid[x+nextcell][i] = 0; //next gets empty
 							moved = true;
 							break;
 						}
@@ -335,22 +317,16 @@ public class Main {
 			
 			for(int i=0; i<width;i++) { 
 				for(int j=height-1;j>=0;j--) {
-//					System.out.println("j:"+ j+" i:" +i);
-//					System.out.println("grid:"+ grid[j][i] );
 					
 					int nextcell = 1;
 					int x=j;
 					while (x > 0 && nextcell <= x ) { // this while moves all the numbers to the bottom of the grid
-//						System.out.println("atual: j:"+ x+" i:" +i);
-//						System.out.println("prox: j:"+ (x-nextcell)+" i:" + i);
-//						System.out.println("num atual: "+ grid[x][i]+" num prox: " +grid[x-nextcell][i]+ "\n");
-//
 						if (grid[x][i] == 0) {
 							if(grid[x-nextcell][i] != 0) {
 								moved = true;
 							}
-							grid[x][i] = grid[x-nextcell][i]; //atual recebe prox
-							grid[x-nextcell][i] = 0; //prox recebe 0
+							grid[x][i] = grid[x-nextcell][i]; //actual gets next
+							grid[x-nextcell][i] = 0; //next gets empty
 						}
 						
 						else if(grid[x][i] != 0 && grid[x-nextcell][i] !=0 && grid[x][i] != grid[x-nextcell][i]){
@@ -358,8 +334,8 @@ public class Main {
 						}
 						
 						else if(grid[x][i] != 0 && grid[x][i] == grid[x-nextcell][i]){
-							grid[x][i] = grid[x-nextcell][i] + grid[x][i]; //atual soma prox
-							grid[x-nextcell][i] = 0; //prox recebe 0
+							grid[x][i] = grid[x-nextcell][i] + grid[x][i]; //actual sums next
+							grid[x-nextcell][i] = 0; //next goes empty
 							moved = true;
 							break;
 							
@@ -372,28 +348,24 @@ public class Main {
 		}
 		
 		if(!moved) {
-			System.out.println("Invalid Movement!");
+			System.out.println("\nINVALID MOVEMENT! Try another\n"); //if the grid didnt move any cell with the play, this turn doesnt count
 		} 
 		
 		else {
-			grid = addrandom1(grid, height, width);
+			grid = addrandom1(grid, height, width); // if grid moved, adds a random 1 to a free cell of the grid
 		}
 	
 		return grid;
 		
-		
 	};
 	
-	public static boolean testValidMovements(int grid[][], int height, int width) {
+	public static boolean testValidMovements(int grid[][], int height, int width) { //checks if there are any valid movements player can do
 		boolean validmovement=false;
-		//System.out.println(grid);
-		
-		for(int i=0; i<height;i++) { 
-			if(validmovement) {
+		for(int i=0; i<height;i++) { //goes trough all the array
+			if(validmovement) {  //if there were any valid movement, gets out the for and returns true so game can continue
 				break;
 			}
-			for(int j=0;j<width;j++) {
-				//System.out.println("hello again"+ grid[i][j]);
+			for(int j=0;j<width;j++) {   //goes trough all the array
 				if (grid [i][j] == 0 ) {
 					validmovement = true;
 					break;
@@ -401,7 +373,6 @@ public class Main {
 				
 				if (j<width-1) {
 					if (grid[i][j] == grid[i][j+1]) { //compares horizontally
-						//System.out.println("horizontally comparing grid["+i+"]["+j+"] with grid["+i+"]["+(j+1)+"]");
 						validmovement = true;
 						break;
 					}
@@ -409,7 +380,6 @@ public class Main {
 
 				if (i < height-1) {
 					if(grid[i][j] == grid[i+1][j]) { //compares vertically
-						//System.out.println("vertically comparing grid["+i+"]["+j+"] with grid["+(i+1)+"]["+j+"]");
 						validmovement = true;
 						break;
 					}
@@ -418,7 +388,7 @@ public class Main {
 			}
 		}
 		
-		return validmovement;
+		return validmovement; //returns
 	}
 	
 }
